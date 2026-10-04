@@ -311,89 +311,95 @@
     }
 
     async function performSearch(query) {
-      const resultsContainer = document.getElementById('searchResults');
-      resultsContainer.innerHTML = '<p style="color:var(--subtext-color); text-align:center; margin-top:2rem;">Aranıyor...</p>';
+  const resultsContainer = document.getElementById('searchResults');
+  resultsContainer.innerHTML = '<p style="color:var(--subtext-color); text-align:center; margin-top:2rem;">Aranıyor...</p>';
 
-      try {
-        const cleanQuery = query.replace('#', '').trim();
+  try {
+    const cleanQuery = query.replace('#', '').trim();
 
-        // 1. KULLANICILARDA ARAMA (username veya name içinde)
-        const userResults = await pb.collection('users').getFullList({
-          filter: `username ~ "${cleanQuery}" || name ~ "${cleanQuery}"`
-        });
+    // 1. KULLANICILARDA ARAMA
+    const userResults = await pb.collection('users').getFullList({
+      filter: `username ~ "${cleanQuery}" || name ~ "${cleanQuery}"`
+    });
 
-        // 2. GÖNDERİLERDE ARAMA (content içinde)
-        const postResults = await pb.collection('posts').getFullList({
-          filter: `content ~ "${cleanQuery}"`,
-          sort: '-created',
-          expand: 'author'
-        });
+    // 2. GÖNDERİLERDE ARAMA
+    const postResults = await pb.collection('posts').getFullList({
+      filter: `content ~ "${cleanQuery}"`,
+      sort: '-created',
+      expand: 'author'
+    });
 
-        resultsContainer.innerHTML = '';
+    resultsContainer.innerHTML = '';
 
-        // KULLANICI SONUÇLARI
-        if (userResults.length > 0) {
-          const userHeader = document.createElement('div');
-          userHeader.className = 'section-title';
-          userHeader.innerHTML = '<i class="fa-solid fa-users"></i> Kullanıcılar';
-          resultsContainer.appendChild(userHeader);
+    // KULLANICI SONUÇLARI
+    if (userResults.length > 0) {
+      const userHeader = document.createElement('div');
+      userHeader.className = 'section-title';
+      userHeader.innerHTML = '<i class="fa-solid fa-users"></i> Kullanıcılar';
+      resultsContainer.appendChild(userHeader);
 
-          userResults.forEach(u => {
-            const uCard = document.createElement('div');
-            uCard.className = 'user-card';
-            uCard.onclick = () => window.location.href = `profile.html?id=${u.id}`;
-            uCard.innerHTML = `
-              <div class="user-info">
-                <img src="${getAvatarUrl(u)}" class="avatar">
-                <div>
-                  <strong>${u.name || 'Nova Kullanıcısı'}</strong>${renderBadges(u.badges)}
-                  <div style="color:var(--subtext-color); font-size:0.85rem;">@${u.username}</div>
-                </div>
-              </div>
-              <i class="fa-solid fa-chevron-right" style="color:var(--subtext-color);"></i>
-            `;
-            resultsContainer.appendChild(uCard);
-          });
-        }
-
-        // GÖNDERİ SONUÇLARI
-        if (postResults.length > 0) {
-          const postHeader = document.createElement('div');
-          postHeader.className = 'section-title';
-          postHeader.innerHTML = '<i class="fa-solid fa-newspaper"></i> Gönderiler & Etiketler';
-          resultsContainer.appendChild(postHeader);
-
-          postResults.forEach(post => {
-            const author = post.expand?.author || {};
-            const pCard = document.createElement('div');
-            pCard.className = 'post-card';
-            pCard.innerHTML = `
-              <div class="post-header">
-                <img src="${getAvatarUrl(author)}" class="avatar" style="width:36px; height:36px; cursor:pointer;" onclick="window.location.href='profile.html?id=${author.id}'">
-                <div>
-                  <strong>${author.name || 'Nova Kullanıcısı'}</strong>${renderBadges(author.badges)}
-                  <div style="color:var(--subtext-color); font-size:0.8rem;">@${author.username}</div>
-                </div>
-              </div>
-              <p>${formatHashtags(post.content)}</p>
-            `;
-            resultsContainer.appendChild(pCard);
-          });
-        }
-
-        // HİÇBİR SONUÇ BULUNAMADISA
-        if (userResults.length === 0 && postResults.length === 0) {
-          resultsContainer.innerHTML = `
-            <p style="color:var(--subtext-color); text-align:center; margin-top:2rem;">
-              "${query}" için hiçbir kullanıcı veya gönderi bulunamadı.
-            </p>`;
-        }
-
-      } catch (err) {
-        console.error("Arama hatası:", err);
-        resultsContainer.innerHTML = '<p style="color:var(--danger-color); text-align:center; margin-top:2rem;">Arama yapılırken bir hata oluştu.</p>';
-      }
+      userResults.forEach(u => {
+        const uCard = document.createElement('div');
+        uCard.className = 'user-card';
+        uCard.onclick = () => window.location.href = `profile.html?id=${u.id}`;
+        uCard.innerHTML = `
+          <div class="user-info">
+            <img src="${getAvatarUrl(u)}" class="avatar">
+            <div>
+              <strong>${u.name || u.username || 'Nova Kullanıcısı'}</strong>${renderBadges(u.badges)}
+              <div style="color:var(--subtext-color); font-size:0.85rem;">@${u.username || 'nova_kullanicisi'}</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right" style="color:var(--subtext-color);"></i>
+        `;
+        resultsContainer.appendChild(uCard);
+      });
     }
+
+    // GÖNDERİ SONUÇLARI (GÜVENLİ AUTHOR/USER OKUMA)
+    if (postResults.length > 0) {
+      const postHeader = document.createElement('div');
+      postHeader.className = 'section-title';
+      postHeader.innerHTML = '<i class="fa-solid fa-newspaper"></i> Gönderiler & Etiketler';
+      resultsContainer.appendChild(postHeader);
+
+      postResults.forEach(post => {
+        let author = post.expand?.author || {};
+        if (Array.isArray(author)) author = author[0] || {};
+
+        // Undefined kalmaması için güvenli değişkenler
+        const authorUsername = author.username || 'nova_medya';
+        const authorName = author.name || author.username || 'NMedya';
+        const authorId = author.id || post.author || '';
+
+        const pCard = document.createElement('div');
+        pCard.className = 'post-card';
+        pCard.innerHTML = `
+          <div class="post-header">
+            <img src="${getAvatarUrl(author)}" class="avatar" style="width:36px; height:36px; cursor:pointer;" onclick="window.location.href='profile.html?id=${authorId}'">
+            <div>
+              <strong>${authorName}</strong>${renderBadges(author.badges)}
+              <div style="color:var(--subtext-color); font-size:0.8rem;">@${authorUsername}</div>
+            </div>
+          </div>
+          <p>${formatHashtags(post.content)}</p>
+        `;
+        resultsContainer.appendChild(pCard);
+      });
+    }
+
+    if (userResults.length === 0 && postResults.length === 0) {
+      resultsContainer.innerHTML = `
+        <p style="color:var(--subtext-color); text-align:center; margin-top:2rem;">
+          "${query}" için hiçbir kullanıcı veya gönderi bulunamadı.
+        </p>`;
+    }
+
+  } catch (err) {
+    console.error("Arama hatası:", err);
+    resultsContainer.innerHTML = '<p style="color:var(--danger-color); text-align:center; margin-top:2rem;">Arama yapılırken bir hata oluştu.</p>';
+  }
+}
   </script>
 </body>
 </html>
