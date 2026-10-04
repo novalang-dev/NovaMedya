@@ -15,6 +15,16 @@
       --border-color: #38444d;
       --accent-color: #8a2be2;
       --subtext-color: #8899a6;
+      --hype-color: #ff4500;
+      --danger-color: #ff4d4d;
+    }
+
+    [data-theme="light"] {
+      --bg-color: #ffffff;
+      --card-bg: #f0f3f5;
+      --text-color: #0f1419;
+      --border-color: #e1e8ed;
+      --subtext-color: #5b7083;
     }
 
     body {
@@ -26,26 +36,6 @@
       justify-content: center;
     }
 
-    /* AKTİF MENÜ ELEMANI (TÜM TEMALAR İÇİN) */
-.nav-item.active {
-  color: var(--accent-color) !important;
-  font-weight: bold;
-  background-color: var(--card-bg);
-}
-
-.nav-item.active i {
-  color: var(--accent-color) !important;
-}
-
-/* AYDINLIK MOD (LIGHT THEME) ÖZEL İYİLEŞTİRMELERİ */
-[data-theme="light"] {
-  --bg-color: #ffffff;
-  --card-bg: #f0f3f5;
-  --text-color: #0f1419;
-  --border-color: #e1e8ed;
-  --subtext-color: #5b7083;
-}
-
     .app-container {
       display: flex;
       width: 100%;
@@ -53,6 +43,7 @@
       min-height: 100vh;
     }
 
+    /* SOL MENÜ */
     .sidebar-left {
       width: 250px;
       padding: 1rem;
@@ -86,101 +77,170 @@
       cursor: pointer;
       color: var(--text-color);
       text-decoration: none;
+      transition: background 0.2s;
     }
 
     .nav-item:hover { background-color: var(--card-bg); }
 
-    .feed-center {
-      flex: 1;
-      max-width: 600px;
-      border-right: 1px solid var(--border-color);
-      min-height: 100vh;
+    .nav-item.active {
+      color: var(--accent-color) !important;
+      font-weight: bold;
+      background-color: var(--card-bg);
     }
 
-    .search-box {
+    /* ORTA İÇERİK */
+    .main-content {
+      flex: 1;
+      max-width: 650px;
+      border-right: 1px solid var(--border-color);
+      min-height: 100vh;
+      padding-bottom: 2rem;
+    }
+
+    .page-header {
       padding: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
       border-bottom: 1px solid var(--border-color);
       position: sticky;
       top: 0;
       background-color: var(--bg-color);
+      backdrop-filter: blur(5px);
       z-index: 10;
     }
 
-    .search-input-wrapper {
-      position: relative;
+    .search-bar-container {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
     }
 
-    .search-input-wrapper i {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--subtext-color);
+    .search-input-wrapper {
+      display: flex;
+      align-items: center;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 25px;
+      padding: 0.6rem 1rem;
+      gap: 0.8rem;
     }
 
     .search-input-wrapper input {
-      width: 100%;
-      padding: 0.8rem 0.8rem 0.8rem 2.8rem;
-      border-radius: 25px;
-      border: 1px solid var(--border-color);
-      background-color: var(--card-bg);
+      border: none;
+      background: transparent;
       color: var(--text-color);
       font-size: 1rem;
+      width: 100%;
       outline: none;
-      box-sizing: border-box;
     }
 
+    .results-container {
+      padding: 1rem;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin: 1.2rem 0 0.8rem 0;
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* KULLANICI KARTI */
     .user-card {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      padding: 0.8rem 1rem;
-      border-bottom: 1px solid var(--border-color);
+      justify-content: space-between;
+      padding: 0.8rem;
+      border-radius: 12px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      margin-bottom: 0.8rem;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: transform 0.1s ease;
     }
 
-    .user-card:hover { background-color: var(--card-bg); }
+    .user-card:hover {
+      transform: translateY(-2px);
+    }
 
-    .user-avatar {
-      width: 48px;
-      height: 48px;
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .avatar {
+      width: 45px;
+      height: 45px;
       border-radius: 50%;
       object-fit: cover;
     }
 
-    .badge-icon { font-size: 0.85rem; margin-left: 0.2rem; }
+    .badge-icon { font-size: 0.85rem; }
     .badge-founder { color: #ffd700; }
     .badge-verified { color: #00bfff; }
     .badge-trend { color: #ff4500; }
+
+    /* GÖNDERİ KARTI */
+    .post-card {
+      padding: 1rem;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      margin-bottom: 0.8rem;
+    }
+
+    .post-header {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .hashtag {
+      color: var(--accent-color);
+      cursor: pointer;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
 
   <div class="app-container">
+    
+    <!-- SOL MENÜ -->
     <div class="sidebar-left">
       <div class="logo"><i class="fa-solid fa-rocket"></i> NOVA MEDYA</div>
       <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i> Ana Sayfa</a>
       <a href="search.html" class="nav-item active"><i class="fa-solid fa-magnifying-glass"></i> Ara</a>
       <a href="videos.html" class="nav-item"><i class="fa-solid fa-film"></i> Videolar</a>
+      <a href="index.html" class="nav-item"><i class="fa-solid fa-bell"></i> Bildirimler</a>
       <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i> Profilim</a>
       <div style="flex-grow: 1;"></div>
       <a href="settings.html" class="nav-item"><i class="fa-solid fa-gear"></i> Ayarlar</a>
-      <div class="nav-item" id="logoutBtn" style="color: #ff4d4d;"><i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap</div>
+      <div class="nav-item" id="logoutBtn" style="color: var(--danger-color);"><i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap</div>
     </div>
 
-    <div class="feed-center">
-      <div class="search-box">
+    <!-- ORTA ARAMA ALANI -->
+    <div class="main-content">
+      <div class="page-header"><i class="fa-solid fa-magnifying-glass"></i> Keşfet ve Ara</div>
+
+      <div class="search-bar-container">
         <div class="search-input-wrapper">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" id="searchInput" placeholder="Kullanıcı veya içerik ara..." autocomplete="off">
+          <i class="fa-solid fa-magnifying-glass" style="color:var(--subtext-color);"></i>
+          <input type="text" id="searchInput" placeholder="Kullanıcı adı, isim veya #etiket ara...">
         </div>
       </div>
 
-      <div id="searchResults">
-        <p style="padding: 1rem; color: var(--subtext-color);">Arama yapmak için yukarıya bir şeyler yazın.</p>
+      <div class="results-container" id="searchResults">
+        <p style="color:var(--subtext-color); text-align:center; margin-top:2rem;">
+          Aramak istediğin kelimeyi yukarıdaki kutucuğa yazabilirsin.
+        </p>
       </div>
     </div>
+
   </div>
 
   <script>
@@ -207,52 +267,133 @@
     }
 
     function getAvatarUrl(user) {
-      if (user.avatar) return pb.files.getUrl(user, user.avatar);
-      return user.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=Nova1';
+      if (user?.avatar) return pb.files.getUrl(user, user.avatar);
+      return user?.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=Nova1';
     }
 
+    function formatHashtags(text) {
+      if (!text) return '';
+      return text.replace(/#(\w+)/g, '<span class="hashtag" onclick="triggerSearch(\'$1\')">#$1</span>');
+    }
+
+    const searchInput = document.getElementById('searchInput');
     let searchTimeout = null;
-    document.getElementById('searchInput').addEventListener('input', (e) => {
+
+    // URL'den parametre kontrolü (örn: search.html?q=NovaMedya)
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryParam = urlParams.get('q');
+    if (queryParam) {
+      searchInput.value = queryParam;
+      performSearch(queryParam);
+    }
+
+    searchInput.addEventListener('input', (e) => {
       clearTimeout(searchTimeout);
       const query = e.target.value.trim();
-
+      
       if (!query) {
-        document.getElementById('searchResults').innerHTML = '<p style="padding: 1rem; color: var(--subtext-color);">Arama yapmak için yukarıya bir şeyler yazın.</p>';
+        document.getElementById('searchResults').innerHTML = `
+          <p style="color:var(--subtext-color); text-align:center; margin-top:2rem;">
+            Aramak istediğin kelimeyi yukarıdaki kutucuğa yazabilirsin.
+          </p>`;
         return;
       }
 
-      searchTimeout = setTimeout(async () => {
-        try {
-          const users = await pb.collection('users').getFullList({
-            filter: `name ~ "${query}" || username ~ "${query}"`
-          });
-
-          const resultsDiv = document.getElementById('searchResults');
-          resultsDiv.innerHTML = '';
-
-          if (users.length === 0) {
-            resultsDiv.innerHTML = '<p style="padding: 1rem; color: var(--subtext-color);">Kullanıcı bulunamadı.</p>';
-            return;
-          }
-
-          users.forEach(user => {
-            const card = document.createElement('div');
-            card.className = 'user-card';
-            card.onclick = () => window.location.href = `profile.html?id=${user.id}`;
-            card.innerHTML = `
-              <img src="${getAvatarUrl(user)}" class="user-avatar">
-              <div>
-                <div><strong>${user.name || 'Nova Kullanıcısı'}</strong>${renderBadges(user.badges)}</div>
-                <div style="color: var(--subtext-color); font-size: 0.85rem;">@${user.username}</div>
-              </div>
-            `;
-            resultsDiv.appendChild(card);
-          });
-        } catch (err) {
-          console.error("Arama hatası:", err);
-        }
+      // 300ms bekleyip aramayı çalıştır (performans için)
+      searchTimeout = setTimeout(() => {
+        performSearch(query);
       }, 300);
     });
+
+    function triggerSearch(tag) {
+      searchInput.value = tag;
+      performSearch(tag);
+    }
+
+    async function performSearch(query) {
+      const resultsContainer = document.getElementById('searchResults');
+      resultsContainer.innerHTML = '<p style="color:var(--subtext-color); text-align:center; margin-top:2rem;">Aranıyor...</p>';
+
+      try {
+        const cleanQuery = query.replace('#', '').trim();
+
+        // 1. KULLANICILARDA ARAMA (username veya name içinde)
+        const userResults = await pb.collection('users').getFullList({
+          filter: `username ~ "${cleanQuery}" || name ~ "${cleanQuery}"`
+        });
+
+        // 2. GÖNDERİLERDE ARAMA (content içinde)
+        const postResults = await pb.collection('posts').getFullList({
+          filter: `content ~ "${cleanQuery}"`,
+          sort: '-created',
+          expand: 'author'
+        });
+
+        resultsContainer.innerHTML = '';
+
+        // KULLANICI SONUÇLARI
+        if (userResults.length > 0) {
+          const userHeader = document.createElement('div');
+          userHeader.className = 'section-title';
+          userHeader.innerHTML = '<i class="fa-solid fa-users"></i> Kullanıcılar';
+          resultsContainer.appendChild(userHeader);
+
+          userResults.forEach(u => {
+            const uCard = document.createElement('div');
+            uCard.className = 'user-card';
+            uCard.onclick = () => window.location.href = `profile.html?id=${u.id}`;
+            uCard.innerHTML = `
+              <div class="user-info">
+                <img src="${getAvatarUrl(u)}" class="avatar">
+                <div>
+                  <strong>${u.name || 'Nova Kullanıcısı'}</strong>${renderBadges(u.badges)}
+                  <div style="color:var(--subtext-color); font-size:0.85rem;">@${u.username}</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right" style="color:var(--subtext-color);"></i>
+            `;
+            resultsContainer.appendChild(uCard);
+          });
+        }
+
+        // GÖNDERİ SONUÇLARI
+        if (postResults.length > 0) {
+          const postHeader = document.createElement('div');
+          postHeader.className = 'section-title';
+          postHeader.innerHTML = '<i class="fa-solid fa-newspaper"></i> Gönderiler & Etiketler';
+          resultsContainer.appendChild(postHeader);
+
+          postResults.forEach(post => {
+            const author = post.expand?.author || {};
+            const pCard = document.createElement('div');
+            pCard.className = 'post-card';
+            pCard.innerHTML = `
+              <div class="post-header">
+                <img src="${getAvatarUrl(author)}" class="avatar" style="width:36px; height:36px; cursor:pointer;" onclick="window.location.href='profile.html?id=${author.id}'">
+                <div>
+                  <strong>${author.name || 'Nova Kullanıcısı'}</strong>${renderBadges(author.badges)}
+                  <div style="color:var(--subtext-color); font-size:0.8rem;">@${author.username}</div>
+                </div>
+              </div>
+              <p>${formatHashtags(post.content)}</p>
+            `;
+            resultsContainer.appendChild(pCard);
+          });
+        }
+
+        // HİÇBİR SONUÇ BULUNAMADISA
+        if (userResults.length === 0 && postResults.length === 0) {
+          resultsContainer.innerHTML = `
+            <p style="color:var(--subtext-color); text-align:center; margin-top:2rem;">
+              "${query}" için hiçbir kullanıcı veya gönderi bulunamadı.
+            </p>`;
+        }
+
+      } catch (err) {
+        console.error("Arama hatası:", err);
+        resultsContainer.innerHTML = '<p style="color:var(--danger-color); text-align:center; margin-top:2rem;">Arama yapılırken bir hata oluştu.</p>';
+      }
+    }
   </script>
 </body>
 </html>

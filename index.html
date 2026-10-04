@@ -518,25 +518,36 @@
     }
 
     // HYPE (🚀) BUTONU & BİLDİRİM GÖNDERME
-    async function hypePost(postId, currentHypes, authorId) {
+    // HYPE (🚀) BUTONU - TAM GÜVENLİ
+async function hypePost(postId, currentHypes, authorId) {
+  try {
+    // 1. Önce Hype sayısını güncelle (Bildirim hata verse bile bu çalışır)
+    await pb.collection('posts').update(postId, {
+      'hypes': currentHypes + 1
+    });
+
+    // 2. Bildirim oluşturmayı dene (Başarısız olursa catch yakalar, akış kesilmez)
+    if (authorId && authorId !== 'undefined' && authorId !== myUser.id) {
       try {
-        await pb.collection('posts').update(postId, { hypes: currentHypes + 1 });
-        
-        // Gönderi sahibine bildirim gönder (kendi gönderimiz değilse)
-        if (authorId !== myUser.id) {
-          await pb.collection('notifications').create({
-            user: authorId,
-            actor: myUser.id,
-            type: 'hype',
-            post: postId,
-            read: false
-          });
-        }
-        loadPosts();
-      } catch (err) {
-        console.error(err);
+        await pb.collection('notifications').create({
+          user: authorId,
+          actor: myUser.id,
+          type: 'hype',
+          post: postId,
+          read: false
+        });
+      } catch (notifErr) {
+        console.warn("Bildirim kaydı oluşturulamadı (PocketBase alan ayarlarını kontrol edin):", notifErr);
       }
     }
+
+    // 3. Ekranda Hype sayısını anında güncelle
+    loadPosts();
+    loadWidgets();
+  } catch (err) {
+    console.error("Hype güncellenirken hata oluştu:", err);
+  }
+}
 
     // 🔔 BİLDİRİM MODAL İŞLEMLERİ
     async function checkUnreadNotifications() {
