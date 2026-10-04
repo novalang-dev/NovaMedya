@@ -400,267 +400,308 @@
   </div>
 
   <script>
-    const pb = new PocketBase('https://nova-medya-backend.onrender.com');
-    pb.autoCancellation(false);
+  const pb = new PocketBase('https://nova-medya-backend.onrender.com');
+  pb.autoCancellation(false);
 
-    if (!pb.authStore.isValid) {
-      window.location.href = 'login.html';
-    }
-
-    const myUser = pb.authStore.model;
-    let activePostForComment = null;
-
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      pb.authStore.clear();
-      window.location.href = 'login.html';
-    });
-
-    function renderBadges(userBadges) {
-      let badgeHtml = '';
-      if (!userBadges) return badgeHtml;
-      const badges = Array.isArray(userBadges) ? userBadges : [userBadges];
-      if (badges.includes('Founder')) badgeHtml += ' <i class="fa-solid fa-rocket badge-icon badge-founder"></i>';
-      if (badges.includes('Verified')) badgeHtml += ' <i class="fa-solid fa-bolt badge-icon badge-verified"></i>';
-      if (badges.includes('Trend')) badgeHtml += ' <i class="fa-solid fa-fire badge-icon badge-trend"></i>';
-      return badgeHtml;
-    }
-
-    function getAvatarUrl(user) {
-      if (user?.avatar) return pb.files.getUrl(user, user.avatar);
-      return user?.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=Nova1';
-    }
-
-    // HASHTAG (#) BİÇİMLENDİRME
-    function formatHashtags(text) {
-      if (!text) return '';
-      return text.replace(/#(\w+)/g, '<span class="hashtag" onclick="window.location.href=\'search.html?q=$1\'">#$1</span>');
-    }
-
-    // MEDYA DOSYASI SEÇİLDİĞİNDE
-    document.getElementById('postMediaInput').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      document.getElementById('selectedFileName').textContent = file ? file.name : '';
-    });
-
-    // GÖNDERİ PAYLAŞMA
-    document.getElementById('sendPostBtn').addEventListener('click', async () => {
-      const content = document.getElementById('postContent').value.trim();
-      const mediaFile = document.getElementById('postMediaInput').files[0];
-
-      if (!content && !mediaFile) return alert('Lütfen bir metin veya medya ekleyin!');
-
-      try {
-        const formData = new FormData();
-        formData.append('content', content);
-        formData.append('author', myUser.id);
-        formData.append('hypes', 0);
-        if (mediaFile) formData.append('media', mediaFile);
-
-        await pb.collection('posts').create(formData);
-        document.getElementById('postContent').value = '';
-        document.getElementById('postMediaInput').value = '';
-        document.getElementById('selectedFileName').textContent = '';
-        loadPosts();
-      } catch (err) {
-        alert("Gönderi paylaşılamadı: " + err.message);
-      }
-    });
-
-    // GÖNDERİLERİ ÇEKME
-    async function loadPosts() {
-      const feed = document.getElementById('postsFeed');
-      try {
-        const records = await pb.collection('posts').getFullList({
-          sort: '-created',
-          expand: 'author'
-        });
-
-        feed.innerHTML = '';
-        records.forEach(post => {
-          const author = post.expand?.author || {};
-          const mediaUrl = post.media ? pb.files.getUrl(post, post.media) : null;
-          
-          let mediaHtml = '';
-          if (mediaUrl) {
-            if (post.media.endsWith('.mp4') || post.media.endsWith('.webm')) {
-              mediaHtml = `<div class="media-container"><video src="${mediaUrl}" controls></video></div>`;
-            } else {
-              mediaHtml = `<div class="media-container"><img src="${mediaUrl}"></div>`;
-            }
-          }
-
-          const card = document.createElement('div');
-          card.className = 'post-card';
-          card.innerHTML = `
-            <div class="post-header">
-              <img src="${getAvatarUrl(author)}" class="avatar" onclick="window.location.href='profile.html?id=${author.id}'">
-              <div>
-                <strong>${author.name || 'Nova Kullanıcısı'}</strong>${renderBadges(author.badges)}
-                <div style="color:var(--subtext-color); font-size:0.85rem;">@${author.username}</div>
-              </div>
-            </div>
-            <p>${formatHashtags(post.content)}</p>
-            ${mediaHtml}
-            <div class="post-footer">
-              <div class="action-icon" onclick="hypePost('${post.id}', ${post.hypes || 0}, '${author.id}')">
-                <i class="fa-solid fa-rocket"></i> <span>${post.hypes || 0}</span> Hype
-              </div>
-              <div class="action-icon" onclick="openCommentModal('${post.id}')">
-                <i class="fa-solid fa-comment"></i> Yorum
-              </div>
-            </div>
-          `;
-          feed.appendChild(card);
-        });
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    // HYPE (🚀) BUTONU & BİLDİRİM GÖNDERME
-    // HYPE (🚀) BUTONU - TAM GÜVENLİ
-async function hypePost(postId, currentHypes, authorId) {
-  try {
-    // 1. Önce Hype sayısını güncelle (Bildirim hata verse bile bu çalışır)
-    await pb.collection('posts').update(postId, {
-      'hypes': currentHypes + 1
-    });
-
-    // 2. Bildirim oluşturmayı dene (Başarısız olursa catch yakalar, akış kesilmez)
-    if (authorId && authorId !== 'undefined' && authorId !== myUser.id) {
-      try {
-        await pb.collection('notifications').create({
-          user: authorId,
-          actor: myUser.id,
-          type: 'hype',
-          post: postId,
-          read: false
-        });
-      } catch (notifErr) {
-        console.warn("Bildirim kaydı oluşturulamadı (PocketBase alan ayarlarını kontrol edin):", notifErr);
-      }
-    }
-
-    // 3. Ekranda Hype sayısını anında güncelle
-    loadPosts();
-    loadWidgets();
-  } catch (err) {
-    console.error("Hype güncellenirken hata oluştu:", err);
+  // Oturum kontrolü
+  if (!pb.authStore.isValid) {
+    window.location.href = 'login.html';
   }
-}
 
-    // 🔔 BİLDİRİM MODAL İŞLEMLERİ
-    async function checkUnreadNotifications() {
-      try {
-        const notifs = await pb.collection('notifications').getFullList({
-          filter: `user = "${myUser.id}" && read = false`
-        });
-        const badge = document.getElementById('notifCount');
+  let myUser = pb.authStore.model;
+  let activePostForComment = null;
+
+  // Çıkış Yap
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    pb.authStore.clear();
+    window.location.href = 'login.html';
+  });
+
+  // Rozet Çizimi
+  function renderBadges(userBadges) {
+    let badgeHtml = '';
+    if (!userBadges) return badgeHtml;
+    const badges = Array.isArray(userBadges) ? userBadges : [userBadges];
+    if (badges.includes('Founder')) badgeHtml += ' <i class="fa-solid fa-rocket badge-icon badge-founder"></i>';
+    if (badges.includes('Verified')) badgeHtml += ' <i class="fa-solid fa-bolt badge-icon badge-verified"></i>';
+    if (badges.includes('Trend')) badgeHtml += ' <i class="fa-solid fa-fire badge-icon badge-trend"></i>';
+    return badgeHtml;
+  }
+
+  // Profil Resmi URL'si
+  function getAvatarUrl(user) {
+    if (user?.avatar) return pb.files.getUrl(user, user.avatar);
+    return user?.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=Nova1';
+  }
+
+  // Hashtag Biçimlendirme
+  function formatHashtags(text) {
+    if (!text) return '';
+    return text.replace(/#(\w+)/g, '<span class="hashtag" onclick="window.location.href=\'search.html?q=$1\'">#$1</span>');
+  }
+
+  // Medya Dosyası Seçildiğinde İsim Gösterme
+  document.getElementById('postMediaInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    document.getElementById('selectedFileName').textContent = file ? file.name : '';
+  });
+
+  // GÖNDERİ PAYLAŞMA
+  document.getElementById('sendPostBtn').addEventListener('click', async () => {
+    const content = document.getElementById('postContent').value.trim();
+    const mediaFile = document.getElementById('postMediaInput').files[0];
+
+    if (!content && !mediaFile) return alert('Lütfen bir metin veya medya ekleyin!');
+
+    try {
+      const formData = new FormData();
+      formData.append('content', content);
+      formData.append('author', myUser.id);
+      formData.append('hypes', 0);
+      if (mediaFile) formData.append('media', mediaFile);
+
+      await pb.collection('posts').create(formData);
+      document.getElementById('postContent').value = '';
+      document.getElementById('postMediaInput').value = '';
+      document.getElementById('selectedFileName').textContent = '';
+      loadPosts();
+      loadWidgets();
+    } catch (err) {
+      alert("Gönderi paylaşılamadı: " + err.message);
+    }
+  });
+
+  // GÖNDERİLERİ ÇEKME VE LİSTELEME
+  async function loadPosts() {
+    const feed = document.getElementById('postsFeed');
+    try {
+      // Güncel kullanıcı bilgilerini yenile
+      myUser = await pb.collection('users').getOne(myUser.id);
+
+      const records = await pb.collection('posts').getFullList({
+        sort: '-created',
+        expand: 'author'
+      });
+
+      // Kullanıcının daha önce Hype'ladığı gönderilerin listesi
+      let userHypedPosts = myUser.hypedPosts || [];
+      if (typeof userHypedPosts === 'string') {
+        try { userHypedPosts = JSON.parse(userHypedPosts); } catch(e) { userHypedPosts = []; }
+      }
+
+      feed.innerHTML = '';
+      records.forEach(post => {
+        const author = post.expand?.author || {};
+        const authorName = author.name || author.username || 'Nova Kullanıcısı';
+        const authorUsername = author.username || 'isimsiz';
+        const authorId = author.id || post.author;
+
+        const mediaUrl = post.media ? pb.files.getUrl(post, post.media) : null;
+        
+        let mediaHtml = '';
+        if (mediaUrl) {
+          if (post.media.endsWith('.mp4') || post.media.endsWith('.webm')) {
+            mediaHtml = `<div class="media-container"><video src="${mediaUrl}" controls></video></div>`;
+          } else {
+            mediaHtml = `<div class="media-container"><img src="${mediaUrl}"></div>`;
+          }
+        }
+
+        // Hype durumuna göre buton rengi (Hype'landıysa turuncu renk alır)
+        const isHyped = userHypedPosts.includes(post.id);
+        const hypeIconStyle = isHyped ? 'color: var(--hype-color); font-weight: bold;' : '';
+
+        const card = document.createElement('div');
+        card.className = 'post-card';
+        card.innerHTML = `
+          <div class="post-header">
+            <img src="${getAvatarUrl(author)}" class="avatar" onclick="window.location.href='profile.html?id=${authorId}'">
+            <div>
+              <strong>${authorName}</strong>${renderBadges(author.badges)}
+              <div style="color:var(--subtext-color); font-size:0.85rem;">@${authorUsername}</div>
+            </div>
+          </div>
+          <p>${formatHashtags(post.content)}</p>
+          ${mediaHtml}
+          <div class="post-footer">
+            <div class="action-icon" style="${hypeIconStyle}" onclick="hypePost('${post.id}', ${post.hypes || 0}, '${authorId}')">
+              <i class="fa-solid fa-rocket"></i> <span>${post.hypes || 0}</span> Hype
+            </div>
+            <div class="action-icon" onclick="openCommentModal('${post.id}')">
+              <i class="fa-solid fa-comment"></i> Yorum
+            </div>
+          </div>
+        `;
+        feed.appendChild(card);
+      });
+    } catch (err) {
+      console.error("Gönderiler yüklenirken hata:", err);
+    }
+  }
+
+  // HYPE (🚀) BUTONU (TEK SEFERLİK HYPE KONTROLÜ İLE)
+  async function hypePost(postId, currentHypes, authorId) {
+    try {
+      // 1. Kullanıcı bilgilerini ve Hype listesini getir
+      myUser = await pb.collection('users').getOne(myUser.id);
+      let userHypedPosts = myUser.hypedPosts || [];
+      if (typeof userHypedPosts === 'string') {
+        try { userHypedPosts = JSON.parse(userHypedPosts); } catch(e) { userHypedPosts = []; }
+      }
+
+      // Eğer bu gönderi zaten Hype'lanmışsa engelle
+      if (userHypedPosts.includes(postId)) {
+        alert("Bu gönderiyi zaten Hype'ladın! 🚀");
+        return;
+      }
+
+      // 2. Gönderinin Hype sayısını artır
+      await pb.collection('posts').update(postId, { hypes: currentHypes + 1 });
+
+      // 3. Kullanıcının Hype listesine bu gönderiyi ekle ve veritabanını güncelle
+      userHypedPosts.push(postId);
+      await pb.collection('users').update(myUser.id, {
+        hypedPosts: userHypedPosts
+      });
+
+      // 4. Gönderi sahibine bildirim gönder (Kendi gönderimiz değilse)
+      if (authorId && authorId !== 'undefined' && authorId !== myUser.id) {
+        try {
+          await pb.collection('notifications').create({
+            user: authorId,
+            actor: myUser.id,
+            type: 'hype',
+            post: postId,
+            read: false
+          });
+        } catch (nErr) {
+          console.warn("Bildirim kaydı oluşturulamadı:", nErr);
+        }
+      }
+
+      // Sayfayı ve Widget'ları güncelle
+      loadPosts();
+      loadWidgets();
+
+    } catch (err) {
+      console.error("Hype hatası:", err);
+      alert("Hype yaparken bir hata oluştu.");
+    }
+  }
+
+  // BİLDİRİM İŞLEMLERİ
+  async function checkUnreadNotifications() {
+    try {
+      const notifs = await pb.collection('notifications').getFullList({
+        filter: `user = "${myUser.id}" && read = false`
+      });
+      const badge = document.getElementById('notifCount');
+      if (badge) {
         if (notifs.length > 0) {
           badge.textContent = notifs.length;
           badge.style.display = 'inline-block';
         } else {
           badge.style.display = 'none';
         }
-      } catch (err) {}
-    }
+      }
+    } catch (err) {}
+  }
 
-    async function openNotifModal() {
-      document.getElementById('notifModal').classList.add('active');
-      const list = document.getElementById('notifList');
-      list.innerHTML = 'Yükleniyor...';
+  async function openNotifModal() {
+    document.getElementById('notifModal').classList.add('active');
+    const list = document.getElementById('notifList');
+    list.innerHTML = 'Yükleniyor...';
 
-      try {
-        const notifs = await pb.collection('notifications').getFullList({
-          sort: '-created',
-          filter: `user = "${myUser.id}"`,
-          expand: 'actor'
-        });
+    try {
+      const notifs = await pb.collection('notifications').getFullList({
+        sort: '-created',
+        filter: `user = "${myUser.id}"`,
+        expand: 'actor'
+      });
 
-        if (notifs.length === 0) {
-          list.innerHTML = '<p style="color:var(--subtext-color);">Henüz bildiriminiz yok.</p>';
-          return;
-        }
+      if (notifs.length === 0) {
+        list.innerHTML = '<p style="color:var(--subtext-color);">Henüz bildiriminiz yok.</p>';
+        return;
+      }
 
-        list.innerHTML = '';
-        notifs.forEach(async n => {
-          const actor = n.expand?.actor || {};
-          let text = n.type === 'hype' ? 'gönderini Hype\'ladı! 🚀' : 'gönderine yorum yaptı. 💬';
-          
-          const item = document.createElement('div');
-          item.className = 'notif-item';
-          item.innerHTML = `
-            <img src="${getAvatarUrl(actor)}" style="width:36px; height:36px; border-radius:50%;">
-            <div><strong>@${actor.username}</strong> ${text}</div>
-          `;
-          list.appendChild(item);
+      list.innerHTML = '';
+      for (const n of notifs) {
+        const actor = n.expand?.actor || {};
+        let text = n.type === 'hype' ? 'gönderini Hype\'ladı! 🚀' : 'gönderine yorum yaptı. 💬';
+        
+        const item = document.createElement('div');
+        item.className = 'notif-item';
+        item.innerHTML = `
+          <img src="${getAvatarUrl(actor)}" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+          <div><strong>@${actor.username || 'kullanıcı'}</strong> ${text}</div>
+        `;
+        list.appendChild(item);
 
-          // Okundu olarak işaretle
-          if (!n.read) await pb.collection('notifications').update(n.id, { read: true });
-        });
+        if (!n.read) await pb.collection('notifications').update(n.id, { read: true });
+      }
 
-        checkUnreadNotifications();
-      } catch (err) { console.error(err); }
-    }
+      checkUnreadNotifications();
+    } catch (err) { console.error(err); }
+  }
 
-    function closeNotifModal() { document.getElementById('notifModal').classList.remove('active'); }
+  function closeNotifModal() { document.getElementById('notifModal').classList.remove('active'); }
 
-    // 💬 YORUM MODAL İŞLEMLERİ
-    async function openCommentModal(postId) {
-      activePostForComment = postId;
-      document.getElementById('commentModal').classList.add('active');
-      loadComments(postId);
-    }
+  // YORUM İŞLEMLERİ
+  async function openCommentModal(postId) {
+    activePostForComment = postId;
+    document.getElementById('commentModal').classList.add('active');
+    loadComments(postId);
+  }
 
-    function closeCommentModal() { document.getElementById('commentModal').classList.remove('active'); }
+  function closeCommentModal() { document.getElementById('commentModal').classList.remove('active'); }
 
-    async function loadComments(postId) {
-      const list = document.getElementById('commentList');
-      list.innerHTML = 'Yükleniyor...';
-      try {
-        const comments = await pb.collection('comments').getFullList({
-          sort: 'created',
-          filter: `post = "${postId}"`,
-          expand: 'user'
-        });
+  async function loadComments(postId) {
+    const list = document.getElementById('commentList');
+    list.innerHTML = 'Yükleniyor...';
+    try {
+      const comments = await pb.collection('comments').getFullList({
+        sort: 'created',
+        filter: `post = "${postId}"`,
+        expand: 'user'
+      });
 
-        if (comments.length === 0) {
-          list.innerHTML = '<p style="color:var(--subtext-color);">Henüz yorum yok. İlk yorumu sen yap!</p>';
-          return;
-        }
+      if (comments.length === 0) {
+        list.innerHTML = '<p style="color:var(--subtext-color);">Henüz yorum yok. İlk yorumu sen yap!</p>';
+        return;
+      }
 
-        list.innerHTML = '';
-        comments.forEach(c => {
-          const u = c.expand?.user || {};
-          const item = document.createElement('div');
-          item.className = 'comment-item';
-          item.innerHTML = `
-            <img src="${getAvatarUrl(u)}" style="width:32px; height:32px; border-radius:50%;">
-            <div>
-              <strong style="font-size:0.85rem;">@${u.username}</strong>
-              <div style="font-size:0.9rem; margin-top:0.2rem;">${c.content}</div>
-            </div>
-          `;
-          list.appendChild(item);
-        });
-      } catch (err) { console.error(err); }
-    }
+      list.innerHTML = '';
+      comments.forEach(c => {
+        const u = c.expand?.user || {};
+        const item = document.createElement('div');
+        item.className = 'comment-item';
+        item.innerHTML = `
+          <img src="${getAvatarUrl(u)}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
+          <div>
+            <strong style="font-size:0.85rem;">@${u.username || 'kullanıcı'}</strong>
+            <div style="font-size:0.9rem; margin-top:0.2rem;">${c.content}</div>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    } catch (err) { console.error(err); }
+  }
 
-    document.getElementById('sendCommentBtn').addEventListener('click', async () => {
-      const input = document.getElementById('commentInput');
-      const text = input.value.trim();
-      if (!text || !activePostForComment) return;
+  document.getElementById('sendCommentBtn').addEventListener('click', async () => {
+    const input = document.getElementById('commentInput');
+    const text = input.value.trim();
+    if (!text || !activePostForComment) return;
 
-      try {
-        await pb.collection('comments').create({
-          post: activePostForComment,
-          user: myUser.id,
-          content: text
-        });
+    try {
+      await pb.collection('comments').create({
+        post: activePostForComment,
+        user: myUser.id,
+        content: text
+      });
 
-        // Gönderi sahibini bulup bildirim düş
-        const post = await pb.collection('posts').getOne(activePostForComment);
-        if (post.author !== myUser.id) {
+      const post = await pb.collection('posts').getOne(activePostForComment);
+      if (post.author && post.author !== myUser.id) {
+        try {
           await pb.collection('notifications').create({
             user: post.author,
             actor: myUser.id,
@@ -668,80 +709,62 @@ async function hypePost(postId, currentHypes, authorId) {
             post: post.id,
             read: false
           });
-        }
-
-        input.value = '';
-        loadComments(activePostForComment);
-      } catch (err) { alert("Yorum eklenemedi: " + err.message); }
-    });
-
-    // SAĞ SÜTUN WIDGET'LARINI DOLDURMA
-    // SAĞ SÜTUN WIDGET'LARINI DOLDURMA (GÜVENLİ HALE GETİRİLDİ)
-    async function loadWidgets() {
-      // 1. Trend Gönderiler (En Çok Hype Alanlar)
-      try {
-        const topPosts = await pb.collection('posts').getList(1, 3, {
-          sort: '-hypes',
-          expand: 'author'
-        });
-        
-        const trendDiv = document.getElementById('trendPostsWidget');
-        trendDiv.innerHTML = '';
-
-        if (topPosts.items.length === 0) {
-          trendDiv.innerHTML = '<p style="font-size:0.85rem; color:var(--subtext-color);">Henüz gönderi yok.</p>';
-        } else {
-          topPosts.items.forEach(p => {
-            const item = document.createElement('div');
-            item.className = 'widget-item';
-            item.innerHTML = `
-              <span style="font-size:0.85rem; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:180px;">${p.content || 'Medya İçeriği'}</span> 
-              <strong style="color:var(--hype-color);">🚀 ${p.hypes || 0}</strong>
-            `;
-            trendDiv.appendChild(item);
-          });
-        }
-      } catch (e) {
-        console.error("Trend widget hatası:", e);
-        document.getElementById('trendPostsWidget').innerHTML = '<p style="font-size:0.85rem; color:var(--subtext-color);">Gönderi yok.</p>';
+        } catch (e) {}
       }
 
-      // 2. Kimi Takip Etmeli (Diğer Kullanıcılar)
-      try {
-        const users = await pb.collection('users').getList(1, 5, {
-          sort: '-created'
+      input.value = '';
+      loadComments(activePostForComment);
+    } catch (err) { alert("Yorum eklenemedi: " + err.message); }
+  });
+
+  // SAĞ SÜTUN WIDGET'LARI
+  async function loadWidgets() {
+    try {
+      const topPosts = await pb.collection('posts').getList(1, 3, { sort: '-hypes' });
+      const trendDiv = document.getElementById('trendPostsWidget');
+      trendDiv.innerHTML = '';
+      if (topPosts.items.length === 0) {
+        trendDiv.innerHTML = '<p style="font-size:0.85rem; color:var(--subtext-color);">Gönderi yok.</p>';
+      } else {
+        topPosts.items.forEach(p => {
+          const item = document.createElement('div');
+          item.className = 'widget-item';
+          item.innerHTML = `
+            <span style="font-size:0.85rem; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:180px;">${p.content || 'Medya Gönderisi'}</span> 
+            <strong style="color:var(--hype-color);">🚀 ${p.hypes || 0}</strong>
+          `;
+          trendDiv.appendChild(item);
         });
-        
-        const followDiv = document.getElementById('whoToFollowWidget');
-        followDiv.innerHTML = '';
-
-        const otherUsers = users.items.filter(u => u.id !== myUser.id);
-
-        if (otherUsers.length === 0) {
-          followDiv.innerHTML = '<p style="font-size:0.85rem; color:var(--subtext-color);">Önerilecek kullanıcı yok.</p>';
-        } else {
-          otherUsers.slice(0, 3).forEach(u => {
-            const item = document.createElement('div');
-            item.className = 'widget-item';
-            item.innerHTML = `
-              <div style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;" onclick="window.location.href='profile.html?id=${u.id}'">
-                <img src="${getAvatarUrl(u)}" style="width:28px; height:28px; border-radius:50%; object-fit:cover;">
-                <span style="font-size:0.85rem; font-weight:bold;">@${u.username}</span>
-              </div>
-            `;
-            followDiv.appendChild(item);
-          });
-        }
-      } catch (e) {
-        console.error("Takip widget hatası:", e);
-        document.getElementById('whoToFollowWidget').innerHTML = '<p style="font-size:0.85rem; color:var(--subtext-color);">Kullanıcı yok.</p>';
       }
-    }
+    } catch (e) {}
 
-    loadPosts();
-    checkUnreadNotifications();
-    loadWidgets();
-    setInterval(checkUnreadNotifications, 10000); // 10 saniyede bir bildirim kontrolü
-  </script>
+    try {
+      const users = await pb.collection('users').getList(1, 5, { sort: '-created' });
+      const followDiv = document.getElementById('whoToFollowWidget');
+      followDiv.innerHTML = '';
+      const otherUsers = users.items.filter(u => u.id !== myUser.id);
+      if (otherUsers.length === 0) {
+        followDiv.innerHTML = '<p style="font-size:0.85rem; color:var(--subtext-color);">Kullanıcı yok.</p>';
+      } else {
+        otherUsers.slice(0, 3).forEach(u => {
+          const item = document.createElement('div');
+          item.className = 'widget-item';
+          item.innerHTML = `
+            <div style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;" onclick="window.location.href='profile.html?id=${u.id}'">
+              <img src="${getAvatarUrl(u)}" style="width:28px; height:28px; border-radius:50%; object-fit:cover;">
+              <span style="font-size:0.85rem; font-weight:bold;">@${u.username}</span>
+            </div>
+          `;
+          followDiv.appendChild(item);
+        });
+      }
+    } catch (e) {}
+  }
+
+  // Sayfa İlk Yüklendiğinde Çalışacaklar
+  loadPosts();
+  checkUnreadNotifications();
+  loadWidgets();
+</script>
 </body>
 </html>
