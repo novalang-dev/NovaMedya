@@ -472,72 +472,71 @@
   });
 
   // GÖNDERİLERİ ÇEKME VE LİSTELEME
-  async function loadPosts() {
-    const feed = document.getElementById('postsFeed');
-    try {
-      // Güncel kullanıcı bilgilerini yenile
-      myUser = await pb.collection('users').getOne(myUser.id);
+ async function loadPosts() {
+  const feed = document.getElementById('postsFeed');
+  try {
+    const records = await pb.collection('posts').getFullList({
+      sort: '-created',
+      expand: 'author'
+    });
 
-      const records = await pb.collection('posts').getFullList({
-        sort: '-created',
-        expand: 'author'
-      });
+    feed.innerHTML = '';
+    records.forEach(post => {
+      // Yazar verisini expand içerisinden alıyoruz
+      let author = post.expand?.author || {};
+      if (Array.isArray(author)) author = author[0] || {};
 
-      // Kullanıcının daha önce Hype'ladığı gönderilerin listesi
+      // Kullanıcı adı zinciri (Username -> Name -> Varsayılan)
+      const authorUsername = author.username || 'nova_medya';
+      const authorName = author.name || author.username || 'NMedya';
+      const authorId = author.id || post.author || '';
+
+      const mediaUrl = post.media ? pb.files.getUrl(post, post.media) : null;
+      
+      let mediaHtml = '';
+      if (mediaUrl) {
+        if (post.media.endsWith('.mp4') || post.media.endsWith('.webm')) {
+          mediaHtml = `<div class="media-container"><video src="${mediaUrl}" controls></video></div>`;
+        } else {
+          mediaHtml = `<div class="media-container"><img src="${mediaUrl}"></div>`;
+        }
+      }
+
+      // Hype durumu kontrolü
       let userHypedPosts = myUser.hypedPosts || [];
       if (typeof userHypedPosts === 'string') {
         try { userHypedPosts = JSON.parse(userHypedPosts); } catch(e) { userHypedPosts = []; }
       }
+      const isHyped = userHypedPosts.includes(post.id);
+      const hypeIconStyle = isHyped ? 'color: var(--hype-color); font-weight: bold;' : '';
 
-      feed.innerHTML = '';
-      records.forEach(post => {
-        const author = post.expand?.author || {};
-        const authorName = author.name || author.username || 'Nova Kullanıcısı';
-        const authorUsername = author.username || 'isimsiz';
-        const authorId = author.id || post.author;
-
-        const mediaUrl = post.media ? pb.files.getUrl(post, post.media) : null;
-        
-        let mediaHtml = '';
-        if (mediaUrl) {
-          if (post.media.endsWith('.mp4') || post.media.endsWith('.webm')) {
-            mediaHtml = `<div class="media-container"><video src="${mediaUrl}" controls></video></div>`;
-          } else {
-            mediaHtml = `<div class="media-container"><img src="${mediaUrl}"></div>`;
-          }
-        }
-
-        // Hype durumuna göre buton rengi (Hype'landıysa turuncu renk alır)
-        const isHyped = userHypedPosts.includes(post.id);
-        const hypeIconStyle = isHyped ? 'color: var(--hype-color); font-weight: bold;' : '';
-
-        const card = document.createElement('div');
-        card.className = 'post-card';
-        card.innerHTML = `
-          <div class="post-header">
-            <img src="${getAvatarUrl(author)}" class="avatar" onclick="window.location.href='profile.html?id=${authorId}'">
-            <div>
-              <strong>${authorName}</strong>${renderBadges(author.badges)}
-              <div style="color:var(--subtext-color); font-size:0.85rem;">@${authorUsername}</div>
-            </div>
+      const card = document.createElement('div');
+      card.className = 'post-card';
+      card.innerHTML = `
+        <div class="post-header">
+          <img src="${getAvatarUrl(author)}" class="avatar" onclick="window.location.href='profile.html?id=${authorId}'">
+          <div>
+            <strong>${authorName}</strong>${renderBadges(author.badges)}
+            <div style="color:var(--subtext-color); font-size:0.85rem;">@${authorUsername}</div>
           </div>
-          <p>${formatHashtags(post.content)}</p>
-          ${mediaHtml}
-          <div class="post-footer">
-            <div class="action-icon" style="${hypeIconStyle}" onclick="hypePost('${post.id}', ${post.hypes || 0}, '${authorId}')">
-              <i class="fa-solid fa-rocket"></i> <span>${post.hypes || 0}</span> Hype
-            </div>
-            <div class="action-icon" onclick="openCommentModal('${post.id}')">
-              <i class="fa-solid fa-comment"></i> Yorum
-            </div>
+        </div>
+        <p>${formatHashtags(post.content)}</p>
+        ${mediaHtml}
+        <div class="post-footer">
+          <div class="action-icon" style="${hypeIconStyle}" onclick="hypePost('${post.id}', ${post.hypes || 0}, '${authorId}')">
+            <i class="fa-solid fa-rocket"></i> <span>${post.hypes || 0}</span> Hype
           </div>
-        `;
-        feed.appendChild(card);
-      });
-    } catch (err) {
-      console.error("Gönderiler yüklenirken hata:", err);
-    }
+          <div class="action-icon" onclick="openCommentModal('${post.id}')">
+            <i class="fa-solid fa-comment"></i> Yorum
+          </div>
+        </div>
+      `;
+      feed.appendChild(card);
+    });
+  } catch (err) {
+    console.error("Gönderiler yüklenirken hata:", err);
   }
+}
 
   // HYPE (🚀) BUTONU (TEK SEFERLİK HYPE KONTROLÜ İLE)
   async function hypePost(postId, currentHypes, authorId) {
