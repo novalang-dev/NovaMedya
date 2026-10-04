@@ -229,7 +229,8 @@
           <i class="fa-solid fa-key"></i>
           <input type="password" id="regPassword" required placeholder="••••••••">
         </div>
-        <div class="password-hint">💡 En az 8 karakter, en az bir harf ve bir rakam içermelidir.</div>
+        <div class="password-hint">
+  🔒 Şifreniz en az 8 karakter olmalı; harf, rakam ve özel simge (!@#$) içermelidir.</div>
       </div>
 
       <div class="form-group">
@@ -287,12 +288,13 @@
       const bio = document.getElementById('regBio').value;
       const password = document.getElementById('regPassword').value;
 
-      // ŞİFRE KONTROLÜ (En az 8 karakter, hem harf hem rakam)
-      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
-      if (!passwordRegex.test(password)) {
-        alert('Şifre kurala uymuyor! En az 8 karakter uzunluğunda olmalı, en az 1 harf ve 1 rakam içermelidir.');
-        return;
-      }
+     // ŞİFRE KONTROLÜ (En az 8 karakter, en az 1 harf, 1 rakam ve 1 özel karakter)
+const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+
+if (!passwordRegex.test(password)) {
+  alert('Şifre kurala uymuyor! En az 8 karakter uzunluğunda olmalı; en az 1 harf, 1 rakam ve 1 özel karakter (!@#$%^&* gibi) içermelidir.');
+  return;
+}
 
       try {
         const data = {
