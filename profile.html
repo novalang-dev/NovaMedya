@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="theme.js"></script>
+  <title>Nova Medya - Profilim</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pocketbase/0.21.3/pocketbase.umd.js"></script>
+  <style>
+    :root {
+      --bg-color: #0f1419;
+      --card-bg: #15202b;
+      --text-color: #f7f9f9;
+      --border-color: #38444d;
+      --accent-color: #8a2be2;
+      --subtext-color: #8899a6;
+      --hype-color: #ff4500;
+    }
+
+    [data-theme="light"] {
+      --bg-color: #ffffff;
+      --card-bg: #f7f9f9;
+      --text-color: #0f1419;
+      --border-color: #e1e8ed;
+      --subtext-color: #5b7083;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+    }
+
+/* AKTİF MENÜ ELEMANI (TÜM TEMALAR İÇİN) */
+.nav-item.active {
+  color: var(--accent-color) !important;
+  font-weight: bold;
+  background-color: var(--card-bg);
+}
+
+.nav-item.active i {
+  color: var(--accent-color) !important;
+}
+
+/* AYDINLIK MOD (LIGHT THEME) ÖZEL İYİLEŞTİRMELERİ */
+[data-theme="light"] {
+  --bg-color: #ffffff;
+  --card-bg: #f0f3f5;
+  --text-color: #0f1419;
+  --border-color: #e1e8ed;
+  --subtext-color: #5b7083;
+}
+
+    .app-container {
+      display: flex;
+      width: 100%;
+      max-width: 1250px;
+      min-height: 100vh;
+    }
+
+    /* SOL MENÜ */
+    .sidebar-left {
+      width: 250px;
+      padding: 1rem;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: var(--accent-color);
+      padding: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 1.05rem;
+      padding: 0.75rem 1rem;
+      border-radius: 25px;
+      cursor: pointer;
+      color: var(--text-color);
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .nav-item:hover { background-color: var(--card-bg); }
+
+    /* ORTA PROFİL ALANI */
+    .feed-center {
+      flex: 1;
+      max-width: 600px;
+      border-right: 1px solid var(--border-color);
+      min-height: 100vh;
+    }
+
+    .feed-header {
+      padding: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      background-color: var(--bg-color);
+      backdrop-filter: blur(5px);
+      z-index: 10;
+    }
+
+    .profile-card {
+      padding: 1.5rem 1rem 1rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .profile-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--accent-color);
+    }
+
+    .action-main-btn {
+      background: transparent;
+      border: 1px solid var(--accent-color);
+      color: var(--accent-color);
+      padding: 0.5rem 1.2rem;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .action-main-btn:hover {
+      background-color: var(--accent-color);
+      color: white;
+    }
+
+    .action-main-btn.following {
+      background-color: var(--card-bg);
+      border-color: var(--border-color);
+      color: var(--text-color);
+    }
+
+    .profile-names h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .profile-username {
+      color: var(--subtext-color);
+      font-size: 0.95rem;
+      margin-top: 0.2rem;
+    }
+
+    .profile-bio {
+      margin: 0.8rem 0;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .badge-icon { font-size: 1rem; }
+    .badge-founder { color: #ffd700; }
+    .badge-verified { color: #00bfff; }
+    .badge-trend { color: #ff4500; }
+
+    /* TAKİPÇİ & GÖNDERİ İSTATİSTİKLERİ */
+    .profile-stats {
+      display: flex;
+      gap: 1.2rem;
+      font-size: 0.9rem;
+      color: var(--subtext-color);
+      margin-top: 0.8rem;
+    }
+
+    .profile-stats strong { color: var(--text-color); }
+
+    /* SEKME MENÜSÜ */
+    .tabs-container {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .tab-item {
+      flex: 1;
+      text-align: center;
+      padding: 1rem 0;
+      font-weight: bold;
+      color: var(--subtext-color);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+
+    .tab-item.active {
+      color: var(--accent-color);
+      border-bottom-color: var(--accent-color);
+    }
+
+    .post-card {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .post-header {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .media-container video, .media-container img {
+      width: 100%;
+      border-radius: 12px;
+      margin-top: 0.8rem;
+    }
+
+    .post-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+      color: var(--subtext-color);
+      font-size: 0.9rem;
+    }
+
+    /* SAĞ SÜTUN */
+    .sidebar-right {
+      width: 350px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .widget-box {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 1rem;
+      border: 1px solid var(--border-color);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- SOL MENÜ -->
+    <!-- SOL MENÜ -->
+<!-- SOL MENÜ -->
+<div class="sidebar-left">
+  <div class="logo"><i class="fa-solid fa-rocket"></i> NOVA MEDYA</div>
+  
+  <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i> Ana Sayfa</a>
+  <a href="search.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i> Ara</a>
+  <a href="videos.html" class="nav-item"><i class="fa-solid fa-film"></i> Videolar</a>
+  <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i> Profilim</a>
+  
+  <div style="flex-grow: 1;"></div> <!-- Ayarları en alta itmek için esnek boşluk -->
+
+  <a href="settings.html" class="nav-item"><i class="fa-solid fa-gear"></i> Ayarlar</a>
+  <div class="nav-item" id="logoutBtn" style="color: #ff4d4d;"><i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap</div>
+</div>
+
+    <!-- ORTA PROFİL ALANI -->
+    <div class="feed-center">
+      <div class="feed-header"><i class="fa-solid fa-user"></i> Kullanıcı Profili</div>
+
+      <div class="profile-card">
+        <div class="profile-top">
+          <img src="" id="userAvatar" class="profile-avatar">
+          <button id="actionBtn" class="action-main-btn"><i class="fa-solid fa-pen-to-square"></i> Düzenle</button>
+        </div>
+        <div class="profile-names">
+          <h2 id="userName">Yükleniyor...</h2>
+          <div class="profile-username" id="userUsername">@...</div>
+        </div>
+        <p class="profile-bio" id="userBio">...</p>
+        
+        <!-- YENİ TAKİPÇİ & İSTATİSTİK ALANI -->
+        <div class="profile-stats">
+          <span><strong id="postCount">0</strong> Gönderi</span>
+          <span><strong id="followersCount">0</strong> Takipçi</span>
+          <span><strong id="followingCount">0</strong> Takip Edilen</span>
+          <span><strong id="totalHypes">0</strong> Hype 🚀</span>
+        </div>
+      </div>
+
+      <div class="tabs-container">
+        <div class="tab-item active" onclick="switchTab('posts', this)"><i class="fa-solid fa-align-left"></i> Gönderiler</div>
+        <div class="tab-item" onclick="switchTab('videos', this)"><i class="fa-solid fa-film"></i> Videolar</div>
+      </div>
+
+      <div id="profileFeed"></div>
+    </div>
+
+    <!-- SAĞ SÜTUN -->
+    <div class="sidebar-right">
+      <div class="widget-box">
+        <strong style="font-size: 1.1rem;"><i class="fa-solid fa-shield-halved"></i> Rozet Sistemi</strong>
+        <p style="font-size: 0.85rem; color: var(--subtext-color); margin-top:0.8rem;">
+          🚀 <strong style="color:#ffd700;">Founder:</strong> Kurucu Rozeti<br>
+          ⚡ <strong style="color:#00bfff;">Verified:</strong> Onaylı Profil<br>
+          🔥 <strong style="color:#ff4500;">Trend:</strong> Popüler İçerik Üreticisi
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const pb = new PocketBase('https://nova-medya-backend.onrender.com');
+    pb.autoCancellation(false);
+
+    if (!pb.authStore.isValid) {
+      window.location.href = 'login.html';
+    }
+
+    const myUserId = pb.authStore.model.id;
+    let targetUserId = myUserId; // Varsayılan kendi profilimiz
+    let currentUserData = null;
+    let isFollowing = false;
+    let followRecordId = null;
+
+    // URL'de id varsa başka kullanıcının profilini aç (örn: profile.html?id=xxx)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('id')) {
+      targetUserId = urlParams.get('id');
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      pb.authStore.clear();
+      window.location.href = 'login.html';
+    });
+
+    function renderBadges(userBadges) {
+      let badgeHtml = '';
+      if (!userBadges) return badgeHtml;
+      const badges = Array.isArray(userBadges) ? userBadges : [userBadges];
+      if (badges.includes('Founder')) badgeHtml += ' <i class="fa-solid fa-rocket badge-icon badge-founder"></i>';
+      if (badges.includes('Verified')) badgeHtml += ' <i class="fa-solid fa-bolt badge-icon badge-verified"></i>';
+      if (badges.includes('Trend')) badgeHtml += ' <i class="fa-solid fa-fire badge-icon badge-trend"></i>';
+      return badgeHtml;
+    }
+
+    function getAvatarUrl(user) {
+      if (user.avatar) return pb.files.getUrl(user, user.avatar);
+      return user.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=Nova1';
+    }
+
+    // PROFİL VE TAKİP BİLGİLERİNİ YÜKLE
+    async function loadUserProfile() {
+      try {
+        currentUserData = await pb.collection('users').getOne(targetUserId);
+
+        const userBadgesHtml = renderBadges(currentUserData.badges);
+        document.getElementById('userName').innerHTML = `${currentUserData.name || 'Nova Kullanıcısı'}${userBadgesHtml}`;
+        document.getElementById('userUsername').textContent = `@${currentUserData.username}`;
+        document.getElementById('userBio').textContent = currentUserData.bio || 'Henüz biyografi eklenmedi.';
+        document.getElementById('userAvatar').src = getAvatarUrl(currentUserData);
+
+        // TAKİPÇİ & TAKİP EDİLEN SAYILARINI ÇEKME
+        const followers = await pb.collection('follows').getFullList({ filter: `target = "${targetUserId}"` });
+        const following = await pb.collection('follows').getFullList({ filter: `user = "${targetUserId}"` });
+
+        document.getElementById('followersCount').textContent = followers.length;
+        document.getElementById('followingCount').textContent = following.length;
+
+        // BUTON AYARLAMASI (Kendi profilimiz mi, başkasının mı?)
+        const actionBtn = document.getElementById('actionBtn');
+        if (targetUserId === myUserId) {
+          actionBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Düzenle';
+          actionBtn.onclick = () => alert('Profil düzenleme ekranı');
+        } else {
+          // Takip durumunu kontrol et
+          const myFollow = followers.find(f => f.user === myUserId);
+          if (myFollow) {
+            isFollowing = true;
+            followRecordId = myFollow.id;
+            actionBtn.innerHTML = '<i class="fa-solid fa-user-check"></i> Takip Ediliyor';
+            actionBtn.classList.add('following');
+          } else {
+            isFollowing = false;
+            actionBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Takip Et';
+            actionBtn.classList.remove('following');
+          }
+          actionBtn.onclick = toggleFollow;
+        }
+
+        loadPosts();
+      } catch (err) {
+        console.error("Profil yüklenemedi:", err);
+      }
+    }
+
+    // TAKİP ET / TAKİPTEN ÇIK MEKANİZMASI
+    async function toggleFollow() {
+      const actionBtn = document.getElementById('actionBtn');
+      try {
+        if (isFollowing) {
+          // Takipten Çık
+          await pb.collection('follows').delete(followRecordId);
+          isFollowing = false;
+          actionBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Takip Et';
+          actionBtn.classList.remove('following');
+        } else {
+          // Takip Et
+          const record = await pb.collection('follows').create({
+            user: myUserId,
+            target: targetUserId
+          });
+          isFollowing = true;
+          followRecordId = record.id;
+          actionBtn.innerHTML = '<i class="fa-solid fa-user-check"></i> Takip Ediliyor';
+          actionBtn.classList.add('following');
+        }
+        loadUserProfile(); // Sayıları canlı güncelle
+      } catch (err) {
+        alert("Takip işlemi başarısız: " + err.message);
+      }
+    }
+
+    // GÖNDERİLERİ ÇEKME
+    async function loadPosts() {
+      const feed = document.getElementById('profileFeed');
+      feed.innerHTML = '';
+      try {
+        const records = await pb.collection('posts').getFullList({
+          sort: '-created',
+          filter: `author = "${targetUserId}"`
+        });
+
+        document.getElementById('postCount').textContent = records.length;
+        const totalHypes = records.reduce((acc, p) => acc + (p.hypes || 0), 0);
+        document.getElementById('totalHypes').textContent = totalHypes;
+
+        if (records.length === 0) {
+          feed.innerHTML = '<p style="padding:1rem; color:var(--subtext-color);">Henüz gönderi yok.</p>';
+          return;
+        }
+
+        records.forEach(post => {
+          const card = document.createElement('div');
+          card.className = 'post-card';
+          card.innerHTML = `
+            <div class="post-header">
+              <img src="${getAvatarUrl(currentUserData)}" class="avatar">
+              <div><strong>${currentUserData.name}</strong><div style="color:var(--subtext-color); font-size:0.85rem;">@${currentUserData.username}</div></div>
+            </div>
+            <p>${post.content}</p>
+            <div class="post-actions">
+              <div><i class="fa-solid fa-rocket"></i> Hype (${post.hypes || 0})</div>
+            </div>
+          `;
+          feed.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadUserProfile();
+  </script>
+</body>
+</html>

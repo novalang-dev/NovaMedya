@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="theme.js"></script>
+  <title>Nova Medya - Giriş & Kayıt</title>
+  <!-- Font Awesome & PocketBase SDK -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pocketbase/0.21.3/pocketbase.umd.js"></script>
+  <style>
+    :root {
+      --bg-color: #0f1419;
+      --card-bg: #1e2732;
+      --text-color: #f7f9f9;
+      --accent-color: #8a2be2;
+      --border-color: #2f3336;
+      --subtext-color: #8899a6;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+
+    /* AKTİF MENÜ ELEMANI (TÜM TEMALAR İÇİN) */
+.nav-item.active {
+  color: var(--accent-color) !important;
+  font-weight: bold;
+  background-color: var(--card-bg);
+}
+
+.nav-item.active i {
+  color: var(--accent-color) !important;
+}
+
+/* AYDINLIK MOD (LIGHT THEME) ÖZEL İYİLEŞTİRMELERİ */
+[data-theme="light"] {
+  --bg-color: #ffffff;
+  --card-bg: #f0f3f5;
+  --text-color: #0f1419;
+  --border-color: #e1e8ed;
+  --subtext-color: #5b7083;
+}
+
+    .auth-container {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 2rem;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .brand h1 {
+      margin: 0;
+      color: var(--accent-color);
+      font-size: 2rem;
+      letter-spacing: 1px;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-size: 0.85rem;
+      color: var(--subtext-color);
+    }
+
+    .input-with-icon {
+      position: relative;
+    }
+
+    .input-with-icon i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--subtext-color);
+    }
+
+    .input-with-icon input, .form-group textarea {
+      width: 100%;
+      padding: 0.75rem 0.75rem 0.75rem 2.4rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+
+    .password-hint {
+      font-size: 0.75rem;
+      color: var(--subtext-color);
+      margin-top: 0.3rem;
+    }
+
+    .avatar-picker {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+    }
+
+    .avatar-option {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      object-fit: cover;
+    }
+
+    .avatar-option.selected {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 10px var(--accent-color);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.85rem;
+      border-radius: 25px;
+      border: none;
+      background-color: var(--accent-color);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .toggle-link {
+      text-align: center;
+      margin-top: 1.2rem;
+      font-size: 0.9rem;
+    }
+
+    .toggle-link a {
+      color: var(--accent-color);
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="auth-container">
+    <div class="brand">
+      <h1><i class="fa-solid fa-rocket"></i> NOVA MEDYA</h1>
+      <p style="color: var(--subtext-color); font-size: 0.85rem;">Sosyal medyanın yeni yıldızı</p>
+    </div>
+
+    <!-- GİRİŞ FORMU -->
+    <form id="loginForm">
+      <div class="form-group">
+        <label>E-posta veya Kullanıcı Adı</label>
+        <div class="input-with-icon">
+          <i class="fa-solid fa-user"></i>
+          <input type="text" id="loginIdentity" required placeholder="ornek@email.com veya kullanıcı adı">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Şifre</label>
+        <div class="input-with-icon">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" id="loginPassword" required placeholder="••••••••">
+        </div>
+      </div>
+      <button type="submit" class="btn"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
+      <div class="toggle-link">
+        <span>Hesabın yok mu? </span><a href="#" id="toRegister">Kayıt Ol</a>
+      </div>
+    </form>
+
+    <!-- KAYIT FORMU -->
+    <form id="registerForm" class="hidden">
+      <div class="form-group">
+        <label>Görünür Ad (Ad Soyad)</label>
+        <div class="input-with-icon">
+          <i class="fa-solid fa-id-card"></i>
+          <input type="text" id="regName" required placeholder="Ahmet Ensar">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Kullanıcı Adı (Nickname)</label>
+        <div class="input-with-icon">
+          <i class="fa-solid fa-at"></i>
+          <input type="text" id="regUsername" required placeholder="ahmet">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>E-posta Adresi</label>
+        <div class="input-with-icon">
+          <i class="fa-solid fa-envelope"></i>
+          <input type="email" id="regEmail" required placeholder="ornek@email.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Biyografi</label>
+        <textarea id="regBio" rows="2" placeholder="Kendinden bahset..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Şifre</label>
+        <div class="input-with-icon">
+          <i class="fa-solid fa-key"></i>
+          <input type="password" id="regPassword" required placeholder="••••••••">
+        </div>
+        <div class="password-hint">💡 En az 8 karakter, en az bir harf ve bir rakam içermelidir.</div>
+      </div>
+
+      <div class="form-group">
+        <label>AI Profil Resmi Seçin</label>
+        <div class="avatar-picker">
+          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Nova1" class="avatar-option selected" data-url="https://api.dicebear.com/7.x/bottts/svg?seed=Nova1">
+          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Nova2" class="avatar-option" data-url="https://api.dicebear.com/7.x/bottts/svg?seed=Nova2">
+          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Nova3" class="avatar-option" data-url="https://api.dicebear.com/7.x/bottts/svg?seed=Nova3">
+          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Nova4" class="avatar-option" data-url="https://api.dicebear.com/7.x/bottts/svg?seed=Nova4">
+          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Nova5" class="avatar-option" data-url="https://api.dicebear.com/7.x/bottts/svg?seed=Nova5">
+        </div>
+      </div>
+
+      <button type="submit" class="btn"><i class="fa-solid fa-user-plus"></i> Kayıt Ol ve Başla</button>
+      <div class="toggle-link">
+        <span>Zaten hesabın var mı? </span><a href="#" id="toLogin">Giriş Yap</a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const pb = new PocketBase('https://nova-medya-backend.onrender.com');
+    pb.autoCancellation(false); // Otomatik iptal hatasını önler
+
+    let selectedAvatar = 'https://api.dicebear.com/7.x/bottts/svg?seed=Nova1';
+
+    // Ekran Geçişleri
+    document.getElementById('toRegister').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('registerForm').classList.remove('hidden');
+    });
+
+    document.getElementById('toLogin').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('registerForm').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+    });
+
+    // Avatar Seçimi
+    document.querySelectorAll('.avatar-option').forEach(img => {
+      img.addEventListener('click', function() {
+        document.querySelectorAll('.avatar-option').forEach(i => i.classList.remove('selected'));
+        this.classList.add('selected');
+        selectedAvatar = this.getAttribute('data-url');
+      });
+    });
+
+    // KAYIT KONTROLÜ VE POCKETBASE'E KAYIT
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('regName').value;
+      const username = document.getElementById('regUsername').value;
+      const email = document.getElementById('regEmail').value;
+      const bio = document.getElementById('regBio').value;
+      const password = document.getElementById('regPassword').value;
+
+      // ŞİFRE KONTROLÜ (En az 8 karakter, hem harf hem rakam)
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+      if (!passwordRegex.test(password)) {
+        alert('Şifre kurala uymuyor! En az 8 karakter uzunluğunda olmalı, en az 1 harf ve 1 rakam içermelidir.');
+        return;
+      }
+
+      try {
+        const data = {
+          "username": username,
+          "email": email,
+          "name": name,
+          "bio": bio,
+          "avatarUrl": selectedAvatar,
+          "password": password,
+          "passwordConfirm": password,
+        };
+
+        await pb.collection('users').create(data);
+        alert('Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
+        
+        document.getElementById('registerForm').classList.add('hidden');
+        document.getElementById('loginForm').classList.remove('hidden');
+      } catch (error) {
+        alert('Kayıt Hatası: ' + error.message);
+      }
+    });
+
+    // GİRİŞ YAPMA
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const identity = document.getElementById('loginIdentity').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        await pb.collection('users').authWithPassword(identity, password);
+        window.location.href = 'index.html';
+      } catch (error) {
+        alert('Giriş başarısız: E-posta/kullanıcı adı veya şifre hatalı!');
+      }
+    });
+  </script>
+</body>
+</html>

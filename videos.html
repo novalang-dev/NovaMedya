@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="theme.js"></script>
+  <title>Nova Medya - Videolar</title>
+  <!-- Font Awesome & PocketBase SDK -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pocketbase/0.21.3/pocketbase.umd.js"></script>
+  <style>
+    :root {
+      --bg-color: #0f1419;
+      --card-bg: #15202b;
+      --text-color: #f7f9f9;
+      --border-color: #38444d;
+      --accent-color: #8a2be2;
+      --subtext-color: #8899a6;
+      --hype-color: #ff4500;
+    }
+
+    [data-theme="light"] {
+      --bg-color: #ffffff;
+      --card-bg: #f7f9f9;
+      --text-color: #0f1419;
+      --border-color: #e1e8ed;
+      --subtext-color: #5b7083;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+    }
+
+    /* AKTİF MENÜ ELEMANI (TÜM TEMALAR İÇİN) */
+.nav-item.active {
+  color: var(--accent-color) !important;
+  font-weight: bold;
+  background-color: var(--card-bg);
+}
+
+.nav-item.active i {
+  color: var(--accent-color) !important;
+}
+
+/* AYDINLIK MOD (LIGHT THEME) ÖZEL İYİLEŞTİRMELERİ */
+[data-theme="light"] {
+  --bg-color: #ffffff;
+  --card-bg: #f0f3f5;
+  --text-color: #0f1419;
+  --border-color: #e1e8ed;
+  --subtext-color: #5b7083;
+}
+
+    .app-container {
+      display: flex;
+      width: 100%;
+      max-width: 1250px;
+      min-height: 100vh;
+    }
+
+    /* SOL MENÜ */
+    .sidebar-left {
+      width: 250px;
+      padding: 1rem;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: var(--accent-color);
+      padding: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 1.05rem;
+      padding: 0.75rem 1rem;
+      border-radius: 25px;
+      cursor: pointer;
+      color: var(--text-color);
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .nav-item:hover { background-color: var(--card-bg); }
+
+    /* ORTA VİDEO ALANI */
+    .feed-center {
+      flex: 1;
+      max-width: 900px;
+      border-right: 1px solid var(--border-color);
+      min-height: 100vh;
+      padding-bottom: 2rem;
+    }
+
+    .feed-header {
+      padding: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      background-color: var(--bg-color);
+      backdrop-filter: blur(5px);
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* VİDEO IZGARASI (GRID) */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .video-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+
+    .video-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px rgba(138, 43, 226, 0.2);
+    }
+
+    .thumbnail-box {
+      width: 100%;
+      height: 160px;
+      background-color: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .thumbnail-box video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .play-icon {
+      position: absolute;
+      font-size: 2rem;
+      color: white;
+      opacity: 0.8;
+      background: rgba(0,0,0,0.5);
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .video-info {
+      padding: 0.8rem;
+    }
+
+    .video-title {
+      font-size: 0.95rem;
+      font-weight: bold;
+      margin-bottom: 0.4rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .video-author {
+      font-size: 0.85rem;
+      color: var(--subtext-color);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* TAM EKRAN KAYDIRMALI OYNATICI (MODAL) */
+    .video-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.95);
+      z-index: 1000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .video-modal.active { display: flex; }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 2rem;
+      color: white;
+      cursor: pointer;
+      z-index: 1001;
+    }
+
+    .full-video-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      height: 85vh;
+      background: #000;
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .full-video-wrapper video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-overlay-actions {
+      position: absolute;
+      right: 15px;
+      bottom: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      align-items: center;
+      color: white;
+      z-index: 10;
+    }
+
+    .overlay-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      cursor: pointer;
+      font-size: 1.4rem;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.7);
+    }
+
+    .overlay-btn span { font-size: 0.8rem; }
+    .overlay-btn.hyped i { color: var(--hype-color); }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- SOL MENÜ -->
+    <!-- SOL MENÜ -->
+<div class="sidebar-left">
+  <div class="logo"><i class="fa-solid fa-rocket"></i> NOVA MEDYA</div>
+  
+  <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i> Ana Sayfa</a>
+  <a href="search.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i> Ara</a>
+  <a href="videos.html" class="nav-item active"><i class="fa-solid fa-film"></i> Videolar</a>
+  <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i> Profilim</a>
+  
+  <div style="flex-grow: 1;"></div> <!-- Ayarları en alta itmek için esnek boşluk -->
+
+  <a href="settings.html" class="nav-item"><i class="fa-solid fa-gear"></i> Ayarlar</a>
+  <div class="nav-item" id="logoutBtn" style="color: #ff4d4d;"><i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap</div>
+</div>
+
+    <!-- ORTA VİDEO ALANI -->
+    <div class="feed-center">
+      <div class="feed-header">
+        <span><i class="fa-solid fa-film"></i> Popüler Videolar</span>
+      </div>
+
+      <!-- VİDEO IZGARASI -->
+      <div class="video-grid" id="videoGrid"></div>
+    </div>
+
+  </div>
+
+  <!-- TAM EKRAN KAYDIRMALI OYNATICI (MODAL) -->
+  <div class="video-modal" id="videoModal">
+    <div class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></div>
+    
+    <div class="full-video-wrapper">
+      <video id="modalVideoPlayer" controls autoplay loop></video>
+      
+      <div class="video-overlay-actions">
+        <div class="overlay-btn" id="modalHypeBtn">
+          <i class="fa-solid fa-rocket"></i>
+          <span id="modalHypeCount">0</span>
+        </div>
+        <div class="overlay-btn">
+          <i class="fa-solid fa-comment"></i>
+          <span>Yorum</span>
+        </div>
+        <div class="overlay-btn">
+          <i class="fa-solid fa-share"></i>
+          <span>Paylaş</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const pb = new PocketBase('https://nova-medya-backend.onrender.com');
+    pb.autoCancellation(false);
+
+    let videoList = [];
+    let currentVideoIndex = 0;
+
+    // Oturum Kontrolü
+    if (!pb.authStore.isValid) {
+      window.location.href = 'login.html';
+    }
+
+    // Çıkış
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      pb.authStore.clear();
+      window.location.href = 'login.html';
+    });
+
+    // POCKETBASE'DEN VİDEOLU GÖNDERİLERİ ÇEKME
+    async function loadVideos() {
+      const grid = document.getElementById('videoGrid');
+      grid.innerHTML = '';
+
+      try {
+        // Sadece medyası olan gönderileri filtreleyip çeker
+        const records = await pb.collection('posts').getFullList({
+          sort: '-created',
+          expand: 'author',
+          filter: 'media != ""'
+        });
+
+        // Sadece video uzantılı medyaları süz
+        videoList = records.filter(p => p.media.endsWith('.mp4') || p.media.endsWith('.webm') || p.media.endsWith('.mov'));
+
+        if (videoList.length === 0) {
+          grid.innerHTML = '<p style="padding: 1rem; color: var(--subtext-color);">Henüz yüklenmiş bir video yok.</p>';
+          return;
+        }
+
+        videoList.forEach((post, index) => {
+          const author = post.expand?.author || {};
+          const videoUrl = pb.files.getUrl(post, post.media);
+
+          const card = document.createElement('div');
+          card.className = 'video-card';
+          card.onclick = () => openModal(index);
+          card.innerHTML = `
+            <div class="thumbnail-box">
+              <video src="${videoUrl}#t=0.5" preload="metadata"></video>
+              <div class="play-icon"><i class="fa-solid fa-play"></i></div>
+            </div>
+            <div class="video-info">
+              <div class="video-title">${post.content}</div>
+              <div class="video-author">
+                <i class="fa-solid fa-user-astronaut"></i> ${author.name || 'Kullanıcı'}
+              </div>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Videolar yüklenemedi:", err);
+      }
+    }
+
+    // MODAL AÇ / KAPAT
+    function openModal(index) {
+      currentVideoIndex = index;
+      const modal = document.getElementById('videoModal');
+      const player = document.getElementById('modalVideoPlayer');
+      const post = videoList[currentVideoIndex];
+
+      player.src = pb.files.getUrl(post, post.media);
+      document.getElementById('modalHypeCount').textContent = post.hypes || 0;
+      
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('videoModal');
+      const player = document.getElementById('modalVideoPlayer');
+      player.pause();
+      player.src = '';
+      modal.classList.remove('active');
+    }
+
+    // KLAVYEDEKİ AŞAĞI / YUKARI OK TUŞLARIYLA KAYDIRARAK GEÇİŞ
+    window.addEventListener('keydown', (e) => {
+      const modal = document.getElementById('videoModal');
+      if (!modal.classList.contains('active')) return;
+
+      if (e.key === 'ArrowDown') { // Bir sonraki video
+        if (currentVideoIndex < videoList.length - 1) {
+          openModal(currentVideoIndex + 1);
+        }
+      } else if (e.key === 'ArrowUp') { // Bir önceki video
+        if (currentVideoIndex > 0) {
+          openModal(currentVideoIndex - 1);
+        }
+      } else if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+
+    loadVideos();
+  </script>
+</body>
+</html>
